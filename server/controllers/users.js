@@ -32,7 +32,7 @@ export const getUserFriends = async (req, res) => {
   }
 };
 
-export const updateUser = async (req, res) => {
+export const addremoveFriend = async (req, res) => {
   try {
     const { id, friendId } = req.params;
     const user = await user.findById(id);
@@ -60,5 +60,3 @@ export const updateUser = async (req, res) => {
     res.status(500).json({ error: e.message }); // send the error message to the client and set the status to 500 (internal server error)
   }
 };
-export const deleteUser = async (req, res) => {};
-export const addremoveFriend = async (req, res) => {};
