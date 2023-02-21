@@ -4,15 +4,15 @@ import {
   getUserFriends,
   addremoveFriend,
 } from "../controllers/users.js";
-import { verityToken } from "../middleware/auth.js";
+import { verifyToken } from "../middleware/auth.js";
 
 const router = express.Router();
 
 /* Read */
-router.get("/:id", verityToken, getUser);
-router.get("/friends/:userId", verityToken, getUserFriends);
+router.get("/:id", verifyToken, getUser);
+router.get("/friends/:userId", verifyToken, getUserFriends);
 
 /* Update */
-router.patch("/:id/:friendId", verityToken, addremoveFriend);
+router.patch("/:id/:friendId", verifyToken, addremoveFriend);
 
 export default router;

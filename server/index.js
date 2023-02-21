@@ -13,6 +13,10 @@ import { createPost } from "./controllers/posts.js";
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
 import postRoutes from "./routes/posts.js";
+import { verifyToken } from "./middleware/auth.js";
+import User from "./models/Users.js";
+import Post from "./models/Posts.js";
+import { users, posts } from "./data/index.js";
 
 /* CONFIGURATION */
 dotenv.config(); // load the environment variables
@@ -61,11 +65,13 @@ mongoose
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
-  .then(
+  .then(() => {
     app.listen(PORT, () => {
       console.log(`Server running on port: ${PORT}`);
-    })
-  )
+    }); // start the server
+    // User.insertMany(users); // insert the users and posts into the database
+    // Post.insertMany(posts); // insert the users and posts into the database
+  })
   .catch((e) => {
     console.log(e.message);
   }); // connect to the database and start the server

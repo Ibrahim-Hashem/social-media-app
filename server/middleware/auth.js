@@ -1,7 +1,6 @@
-import { Jwt } from "jsonwebtoken";
 import jwt from "jsonwebtoken";
 
-export const verityToken = (req, res, next) => {
+export const verifyToken = (req, res, next) => {
   try {
     let token = req.header["Authorization"]; // grab the token from the authorization header
     if (!token) {

@@ -1,6 +1,4 @@
-import User from "../models/user.js";
-import { verityToken } from "../middleware/auth.js";
-import { router } from "../routes/users.js";
+import User from "../models/users.js";
 
 export const getUser = async (req, res) => {
   try {
