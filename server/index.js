@@ -1,77 +1,69 @@
 import express from "express";
 import bodyParser from "body-parser";
-import cors from "cors";
 import mongoose from "mongoose";
-import * as dotenv from "dotenv";
+import cors from "cors";
+import dotenv from "dotenv";
 import multer from "multer";
+import helmet from "helmet";
 import morgan from "morgan";
 import path from "path";
-import { fileURLToPath } from "url"; //ALLOW US TO SET PATHS WHEN WE CONFIGURE DIRECTORIES
-import helmet from "helmet";
-import { registerUser } from "./controllers/auth.js";
-import { createPost } from "./controllers/posts.js";
+import { fileURLToPath } from "url";
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
 import postRoutes from "./routes/posts.js";
+import { register } from "./controllers/auth.js";
+import { createPost } from "./controllers/posts.js";
 import { verifyToken } from "./middleware/auth.js";
-import User from "./models/Users.js";
-import Post from "./models/Posts.js";
+import User from "./models/User.js";
+import Post from "./models/Post.js";
 import { users, posts } from "./data/index.js";
 
-/* CONFIGURATION */
-dotenv.config(); // load the environment variables
-
-const __filename = fileURLToPath(import.meta.url); // grab the file url
-const __dirname = path.dirname(__filename); // grab the directory name
-
-const app = express(); // create express app
-app.use(express.json()); // parse json data
-app.use(helmet()); // secure the app by setting various HTTP headers
-app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" })); // set the cross-origin resource policy
-app.use(morgan("dev")); // log requests to the console
-app.use(bodyParser.json({ limit: "30mb", extended: true })); // parse json data
-app.use(bodyParser.urlencoded({ limit: "30mb", extended: true })); // parse urlencoded data
-app.use(cors()); // allow cross-origin requests
-app.use("/assets", express.static(path.join(__dirname, "public/assets"))); // serve static files into assets folder (images, videos, etc)
+/* CONFIGURATIONS */
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config();
+const app = express();
+app.use(express.json());
+app.use(helmet());
+app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
+app.use(morgan("common"));
+app.use(bodyParser.json({ limit: "30mb", extended: true }));
+app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
+app.use(cors());
+app.use("/assets", express.static(path.join(__dirname, "public/assets")));
 
 /* FILE STORAGE */
-
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "public/assets"); // set the destination folder
+  destination: function (req, file, cb) {
+    cb(null, "public/assets");
   },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`); // set the file name
+  filename: function (req, file, cb) {
+    cb(null, file.originalname);
   },
-}); // create a storage object
+});
+const upload = multer({ storage });
 
-const upload = multer({ storage: storage }); // create a multer object with the storage object for us to save files
+/* ROUTES WITH FILES */
+app.post("/auth/register", upload.single("picture"), register);
+app.post("/posts", verifyToken, upload.single("picture"), createPost);
 
-/* ROUTES WITH FILES*/
-app.post("/auth/register", upload.single("image"), registerUser); // register route with file
-app.post("/posts", verifyToken, upload.single("image"), createPost); // create post route with file
-
-/* ROUTES*/
-app.use("/auth", authRoutes); // auth routes
-app.use("/users", userRoutes); // user routes
-app.use("/posts", postRoutes); // post routes
+/* ROUTES */
+app.use("/auth", authRoutes);
+app.use("/users", userRoutes);
+app.use("/posts", postRoutes);
 
 /* MONGOOSE SETUP */
-const PORT = process.env.PORT || 6001; // set the port
-
-mongoose.set("strictQuery", true); // set strict query to true
+const PORT = process.env.PORT || 6001;
 mongoose
   .connect(process.env.MONGO_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
   .then(() => {
-    app.listen(PORT, () => {
-      console.log(`Server running on port: ${PORT}`);
-    }); // start the server
-    // User.insertMany(users); // insert the users and posts into the database
-    // Post.insertMany(posts); // insert the users and posts into the database
+    app.listen(PORT, () => console.log(`Server Port: ${PORT}`));
+
+    /* ADD DATA ONE TIME */
+    // User.insertMany(users);
+    // Post.insertMany(posts);
   })
-  .catch((e) => {
-    console.log(e.message);
-  }); // connect to the database and start the server
+  .catch((error) => console.log(`${error} did not connect`));
